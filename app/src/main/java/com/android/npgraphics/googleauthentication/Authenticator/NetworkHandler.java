@@ -8,7 +8,7 @@ import android.net.NetworkInfo;
 public class NetworkHandler {
 
     /** Checks whether the device currently has a network connection */
-    public  boolean isDeviceOnline(Context context) {
+    public static  boolean isDeviceOnline(Context context) {
         ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnected();

@@ -8,7 +8,7 @@ This project will simplify the user Google authentication you can Directly use t
 
 I made this project with our Future and reliable Platform Tool Android Studio for Android developer.
 
-First of check this project in this Project i added the one Package name Google Authenticator use that package with your project.
+First of all check this project in this Project i added the one Package name Google Authenticator use that package with your project.
 
 HOW TO USE THIS PROJECT!!!!!
 
@@ -17,7 +17,7 @@ Step 1: copy google authenticator into your project and it will make the some er
 
 Step 2: You need to import the 'com.google.android.gms:play-services:6.5.87' library into your project.It will resolve your problems
 
-Step 3: And one more important steps in this project you need to create a GOOGLE API CREDENTIALS in your google 
+Step 3: And one more important steps in this project is you need to create a GOOGLE API CREDENTIALS in your google 
 console developers site https://console.developers.google.com/  
 
 from the above site you can create the api credentials for your application.

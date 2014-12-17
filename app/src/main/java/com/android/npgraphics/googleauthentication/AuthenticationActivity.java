@@ -79,7 +79,9 @@ public class AuthenticationActivity extends ActionBarActivity implements GoogleA
     @Override
     public void onClick(View v) {
         if(v.getId() == R.id.activity_auth_google_auth_button){
-            mGoogleAuthenticator.execute();
+            if(mGoogleAuthenticator!=null) {
+                mGoogleAuthenticator.execute();
+            }
         }
     }
 }

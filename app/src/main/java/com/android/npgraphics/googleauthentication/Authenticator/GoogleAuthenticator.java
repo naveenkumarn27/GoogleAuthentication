@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class GoogleAuthenticator{
+public class GoogleAuthenticator {
 
     private static final String TAG = "GoogleAuthenticator";
     private Activity mActivity;
@@ -34,19 +34,20 @@ public class GoogleAuthenticator{
 
     /**
      * Google auth listener variable which is used to send the result value to the user activity
-     * **/
+     * *
+     */
     private GoogleAuthListener mGoogleAuthListener;
 
-    public GoogleAuthenticator (Activity activity) {
-        if(activity!=null) {
+    public GoogleAuthenticator(Activity activity) {
+        if (activity != null) {
             this.mActivity = activity;
         } else {
             System.out.println("Please send the not null value");
         }
     }
 
-    private void createDialogueBox(){
-        if(mProgressDialog==null || !mProgressDialog.isShowing()) {
+    private void createDialogueBox() {
+        if (mProgressDialog == null || !mProgressDialog.isShowing()) {
             mProgressDialog = new ProgressDialog(mActivity);
             mProgressDialog.setMessage("Google Authentication process...");
             mProgressDialog.setCancelable(false);
@@ -54,13 +55,13 @@ public class GoogleAuthenticator{
         }
     }
 
-    private void dismissDialogueBox(){
-        if(mProgressDialog!=null && mProgressDialog.isShowing()) {
+    private void dismissDialogueBox() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
         }
     }
 
-    public void execute(){
+    public void execute() {
         int statusCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(mActivity);
         if (statusCode == ConnectionResult.SUCCESS) {
             createDialogueBox();
@@ -74,12 +75,15 @@ public class GoogleAuthenticator{
         }
     }
 
-    private void setErrorMessage(String errorMessage){
+    private void setErrorMessage(String errorMessage) {
         dismissDialogueBox();
-        getGoogleAuthListener().setAuthenticationFailed(errorMessage);
+        if (getGoogleAuthListener() != null) {
+            getGoogleAuthListener().setAuthenticationFailed(errorMessage);
+        }
     }
 
-    /** Attempt to get the user name. If the email address isn't known yet,
+    /**
+     * Attempt to get the user name. If the email address isn't known yet,
      * then call pickUserAccount() method so the user can pick an account.
      */
     public void getUsername(String emailIdValue) {
@@ -87,7 +91,7 @@ public class GoogleAuthenticator{
             pickUserAccount();
         } else {
             if (NetworkHandler.isDeviceOnline(mActivity)) {
-                new GetUserDetailsTask(emailIdValue,mActivity,Constants.SCOPE).execute();
+                new GetUserDetailsTask(emailIdValue, mActivity, Constants.SCOPE).execute();
             } else {
                 setErrorMessage("No Network Connection available..");
             }
@@ -98,7 +102,7 @@ public class GoogleAuthenticator{
         if (resultCode == Activity.RESULT_OK) {
             Log.i(TAG, "Retrying");
             String emailIdValue = data.getStringExtra(Constants.EMAIL_ID);
-            new GetUserDetailsTask(emailIdValue,mActivity,Constants.SCOPE).execute();
+            new GetUserDetailsTask(emailIdValue, mActivity, Constants.SCOPE).execute();
             return;
         }
         if (resultCode == Activity.RESULT_CANCELED) {
@@ -136,7 +140,7 @@ public class GoogleAuthenticator{
                     // the app access to the account, but the user can fix this.
                     // Forward the user to an activity in Google Play services.
                     Intent intent = ((UserRecoverableAuthException) e).getIntent();
-                    intent.putExtra(Constants.EMAIL_ID,emailID);
+                    intent.putExtra(Constants.EMAIL_ID, emailID);
                     mActivity.startActivityForResult(intent,
                             Constants.REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR);
                 }
@@ -145,25 +149,27 @@ public class GoogleAuthenticator{
     }
 
 
-
     /**
      * Starts an activity in Google Play Services so the user can pick an account
-     * **/
+     * *
+     */
     private void pickUserAccount() {
         String[] accountTypes = new String[]{"com.google"};
         Intent intent = AccountPicker.newChooseAccountIntent(null, null,
                 accountTypes, false, null, null, null, null);
         mActivity.startActivityForResult(intent, Constants.REQUEST_CODE_PICK_ACCOUNT);
     }
+
     /**
      * Google auth listener value will get using this method
-     * **/
+     * *
+     */
     public GoogleAuthListener getGoogleAuthListener() {
         return mGoogleAuthListener;
     }
 
     public void setGoogleAuthListener(GoogleAuthListener mGoogleAuthListener) {
-        if(mGoogleAuthListener!=null) {
+        if (mGoogleAuthListener != null) {
             this.mGoogleAuthListener = mGoogleAuthListener;
         } else {
             System.out.println("Please send the not null value");
@@ -171,13 +177,13 @@ public class GoogleAuthenticator{
     }
 
 
-    private class GetUserDetailsTask extends AsyncTask<Void,Void,User> {
+    private class GetUserDetailsTask extends AsyncTask<Void, Void, User> {
 
         private Activity activity;
         private String emailID;
         private String scopes;
 
-        public GetUserDetailsTask(String emailID,Activity activity,String scopes){
+        public GetUserDetailsTask(String emailID, Activity activity, String scopes) {
             this.activity = activity;
             this.emailID = emailID;
             this.scopes = scopes;
@@ -203,7 +209,7 @@ public class GoogleAuthenticator{
                     is.close();
                     return user;
                 } else if (sc == 401) {
-                    try{
+                    try {
                         GoogleAuthUtil.clearToken(mActivity, token);
                     } catch (Exception e) {
                         setErrorMessage("Server auth error, please try again.");
@@ -224,7 +230,7 @@ public class GoogleAuthenticator{
         protected void onPostExecute(User user) {
             super.onPostExecute(user);
             dismissDialogueBox();
-            if(user!=null){
+            if (user != null && getGoogleAuthListener() != null) {
                 getGoogleAuthListener().setAuthenticationSuccess(user);
             }
         }
@@ -244,6 +250,7 @@ public class GoogleAuthenticator{
 
         /**
          * Parses the response and returns the first name of the user.
+         *
          * @throws JSONException if the response is not JSON or if first name does not exist in response
          */
         private User getUserDetails(String jsonResponse) throws JSONException {

@@ -31,6 +31,7 @@ public class GoogleAuthenticator {
     private Activity mActivity;
 
     private ProgressDialog mProgressDialog;
+    private String mEmailId;
 
     /**
      * Google auth listener variable which is used to send the result value to the user activity
@@ -47,17 +48,25 @@ public class GoogleAuthenticator {
     }
 
     private void createDialogueBox() {
-        if (mProgressDialog == null || !mProgressDialog.isShowing()) {
-            mProgressDialog = new ProgressDialog(mActivity);
-            mProgressDialog.setMessage("Google Authentication process...");
-            mProgressDialog.setCancelable(false);
-            mProgressDialog.show();
+        try {
+            if (mProgressDialog == null || !mProgressDialog.isShowing()) {
+                mProgressDialog = new ProgressDialog(mActivity);
+                mProgressDialog.setMessage("Google Authentication process...");
+                mProgressDialog.setCancelable(false);
+                mProgressDialog.show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     private void dismissDialogueBox() {
-        if (mProgressDialog != null && mProgressDialog.isShowing()) {
-            mProgressDialog.dismiss();
+        try {
+            if (mProgressDialog != null && mProgressDialog.isShowing()) {
+                mProgressDialog.dismiss();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -75,11 +84,17 @@ public class GoogleAuthenticator {
         }
     }
 
-    private void setErrorMessage(String errorMessage) {
-        dismissDialogueBox();
-        if (getGoogleAuthListener() != null) {
-            getGoogleAuthListener().setAuthenticationFailed(errorMessage);
-        }
+    private void setErrorMessage(final String errorMessage) {
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                dismissDialogueBox();
+                if (getGoogleAuthListener() != null) {
+                    getGoogleAuthListener().setAuthenticationFailed(errorMessage);
+                }
+            }
+        });
+
     }
 
     /**
@@ -91,7 +106,8 @@ public class GoogleAuthenticator {
             pickUserAccount();
         } else {
             if (NetworkHandler.isDeviceOnline(mActivity)) {
-                new GetUserDetailsTask(emailIdValue, mActivity, Constants.SCOPE).execute();
+                mEmailId = emailIdValue;
+                new GetUserDetailsTask(mEmailId, mActivity, Constants.SCOPE).execute();
             } else {
                 setErrorMessage("No Network Connection available..");
             }
@@ -101,8 +117,7 @@ public class GoogleAuthenticator {
     public void handleAuthorizeResult(int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             Log.i(TAG, "Retrying");
-            String emailIdValue = data.getStringExtra(Constants.EMAIL_ID);
-            new GetUserDetailsTask(emailIdValue, mActivity, Constants.SCOPE).execute();
+            new GetUserDetailsTask(mEmailId, mActivity, Constants.SCOPE).execute();
             return;
         }
         if (resultCode == Activity.RESULT_CANCELED) {
@@ -121,7 +136,7 @@ public class GoogleAuthenticator {
      * This method is a hook for background threads and async tasks that need to provide the
      * user a response UI when an exception occurs.
      */
-    public void handleException(final Exception e, final String emailID) {
+    public void handleException(final Exception e) {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -135,14 +150,16 @@ public class GoogleAuthenticator {
                             mActivity,
                             Constants.REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR);
                     dialog.show();
-                } else if (e instanceof UserRecoverableAuthException) {
-                    // Unable to authenticate, such as when the user has not yet granted
-                    // the app access to the account, but the user can fix this.
-                    // Forward the user to an activity in Google Play services.
-                    Intent intent = ((UserRecoverableAuthException) e).getIntent();
-                    intent.putExtra(Constants.EMAIL_ID, emailID);
-                    mActivity.startActivityForResult(intent,
-                            Constants.REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR);
+                } else {
+                    if (e instanceof UserRecoverableAuthException) {
+                        // Unable to authenticate, such as when the user has not yet granted
+                        // the app access to the account, but the user can fix this.
+                        // Forward the user to an activity in Google Play services.
+
+                        Intent intent = ((UserRecoverableAuthException) e).getIntent();
+                        mActivity.startActivityForResult(intent,
+                                Constants.REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR);
+                    }
                 }
             }
         });
@@ -271,12 +288,13 @@ public class GoogleAuthenticator {
          */
         private String fetchToken() throws IOException {
             try {
+                System.out.println(emailID);
                 return GoogleAuthUtil.getToken(activity, emailID, scopes);
             } catch (UserRecoverableAuthException userRecoverableException) {
                 // GooglePlayServices.apk is either old, disabled, or not present, which is
                 // recoverable, so we need to show the user some UI through the activity.
                 userRecoverableException.printStackTrace();
-                handleException(userRecoverableException, emailID);
+                handleException(userRecoverableException);
             } catch (GoogleAuthException fatalException) {
                 fatalException.printStackTrace();
                 setErrorMessage("Unrecoverable error " + fatalException.getMessage());

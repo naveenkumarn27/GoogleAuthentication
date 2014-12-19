@@ -222,7 +222,6 @@ public class GoogleAuthenticator {
                 if (sc == 200) {
                     InputStream is = con.getInputStream();
                     User user = getUserDetails(readResponse(is));
-                    getGoogleAuthListener().setAuthenticationSuccess(user);
                     is.close();
                     return user;
                 } else if (sc == 401) {

@@ -42,6 +42,7 @@ public class AuthenticationActivity extends ActionBarActivity implements GoogleA
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                System.out.println("Welcome! -> "+user.getUserName());
                 Toast.makeText(AuthenticationActivity.this,"Welcome! "+user.getUserName(),Toast.LENGTH_SHORT).show();
             }
         });

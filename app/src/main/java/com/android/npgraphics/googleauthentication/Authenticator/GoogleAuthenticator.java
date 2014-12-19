@@ -73,7 +73,6 @@ public class GoogleAuthenticator {
     public void execute() {
         int statusCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(mActivity);
         if (statusCode == ConnectionResult.SUCCESS) {
-            createDialogueBox();
             getUsername(null);
         } else if (GooglePlayServicesUtil.isUserRecoverableError(statusCode)) {
             Dialog dialog = GooglePlayServicesUtil.getErrorDialog(
@@ -107,6 +106,7 @@ public class GoogleAuthenticator {
         } else {
             if (NetworkHandler.isDeviceOnline(mActivity)) {
                 mEmailId = emailIdValue;
+                createDialogueBox();
                 new GetUserDetailsTask(mEmailId, mActivity, Constants.SCOPE).execute();
             } else {
                 setErrorMessage("No Network Connection available..");
